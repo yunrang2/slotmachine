@@ -88,7 +88,7 @@
     <a href="user-management.html"><button>사용자 관리</button></a>
   </div>
   <div class="container">
-    <h1>🎰 죽돌이의 슬롯머신</h1>
+    <h1>🎰 죽돌이의 슬롯머신신</h1>
     <div class="user-section">
       <label for="username">사용자 선택:</label>
       <select id="username">
@@ -101,10 +101,10 @@
       <div class="slot"><span>🔔</span></div>
       <div class="slot"><span>⭐</span></div>
       <div class="slot"><span>7️⃣</span></div>
-      <div class="slot"><span>🍋</span></div>
-      <div class="slot"><span>🍉</span></div>
-      <div class="slot"><span>🍉</span></div>
-      <div class="slot"><span>🍋</span></div>
+      <div class="slot"><span>💣</span></div>
+      <div class="slot"><span>💣</span></div>
+      <div class="slot"><span>💣</span></div>
+      <div class="slot"><span>🔔</span></div>
       <div class="slot"><span>🍒</span></div>
     </div>
     <button id="spin-button" disabled>돌리기</button>
@@ -133,15 +133,26 @@
     const stopSound = document.getElementById("stop-sound");
 
     const symbols = [
-      { symbol: "🍒", weight: 15 },
-      { symbol: "🔔", weight: 10 },
-      { symbol: "⭐", weight: 7 },
-      { symbol: "7️⃣", weight: 3 },
-      { symbol: "🍋", weight: 25 },
-      { symbol: "🍉", weight: 40 },
+      { symbol: "💣", weight: 40 },
+      { symbol: "🍒", weight: 25 },
+      { symbol: "🔔", weight: 20 },
+      { symbol: "⭐", weight: 10 },
+      { symbol: "7️⃣", weight: 5 }
     ];
 
-    const weightedSymbols = symbols.flatMap(({ symbol, weight }) => Array(weight).fill(symbol));
+    const generateUniqueColumnSymbols = () => {
+      const columnSymbols = [];
+      for (let i = 0; i < 3; i++) {
+        const uniqueSymbols = new Set();
+        while (uniqueSymbols.size < 3) {
+          const randomIndex = Math.floor(Math.random() * symbols.length);
+          const symbol = symbols[randomIndex].symbol;
+          uniqueSymbols.add(symbol);
+        }
+        columnSymbols.push([...uniqueSymbols]);
+      }
+      return columnSymbols;
+    };
 
     function saveUsers() {
       localStorage.setItem("users", JSON.stringify(users));
@@ -187,6 +198,7 @@
 
       const results = [];
       const slotElements = document.querySelectorAll(".slot span");
+      const columns = generateUniqueColumnSymbols();
 
       slotSound.currentTime = 0;
       slotSound.play();
@@ -194,8 +206,9 @@
       let intervalIds = [];
       slotElements.forEach(slot => {
         const intervalId = setInterval(() => {
-          const randomIndex = Math.floor(Math.random() * weightedSymbols.length);
-          slot.textContent = weightedSymbols[randomIndex];
+          const randomIndex = Math.floor(Math.random() * symbols.length);
+          const randomSymbol = symbols[randomIndex].symbol;
+          slot.textContent = randomSymbol;
         }, 50);
         intervalIds.push(intervalId);
       });
@@ -204,8 +217,9 @@
       slotElements.forEach((slot, index) => {
         setTimeout(() => {
           clearInterval(intervalIds[index]);
-          const finalIndex = Math.floor(Math.random() * weightedSymbols.length);
-          const symbol = weightedSymbols[finalIndex];
+          const columnIndex = index % 3;
+          const rowIndex = Math.floor(index / 3);
+          const symbol = columns[columnIndex][rowIndex];
           slot.textContent = symbol;
           results[index] = symbol;
           stopSound.currentTime = 0;
@@ -233,26 +247,34 @@
       ];
 
       let winnings = 0;
+      let isBombLine = false;
+
       lines.forEach(line => {
         if (results[line[0]] === results[line[1]] && results[line[1]] === results[line[2]]) {
-          switch (results[line[0]]) {
-            case "🍒":
-              winnings += 1000;
-              break;
-            case "🔔":
-              winnings += 5000;
-              break;
-            case "⭐":
-              winnings += parseInt(betSelect.value, 10) * 10;
-              break;
-            case "7️⃣":
-              winnings += parseInt(betSelect.value, 10) * 30;
-              break;
+          if (results[line[0]] === "💣") {
+            isBombLine = true;
+          } else {
+            switch (results[line[0]]) {
+              case "🍒":
+                winnings += 1000;
+                break;
+              case "🔔":
+                winnings += 5000;
+                break;
+              case "⭐":
+                winnings += 10000;
+                break;
+              case "7️⃣":
+                winnings += 30000;
+                break;
+            }
           }
         }
       });
 
-      if (winnings > 0) {
+      if (isBombLine) {
+        messageDisplay.textContent = "💣 폭탄! 당첨되지 않았습니다.";
+      } else if (winnings > 0) {
         users[usernameSelect.value].balance += winnings;
         messageDisplay.textContent = `🎉 축하합니다! ₩${winnings} 획득!`;
       } else {
