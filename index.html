@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>슬롯머신</title>
+  <title>슬롯머신 게임</title>
   <style>
     @font-face {
       font-family: 'DNFBitBit';
@@ -90,7 +90,7 @@
     <a href="user-management.html"><button>사용자 관리</button></a>
   </div>
   <div class="container">
-    <h1>🎰 죽돌이의 슬롯머신</h1>
+    <h1>🎰 슬롯머신 게임</h1>
     <div class="user-section">
       <label for="username">사용자 선택:</label>
       <select id="username">
@@ -117,6 +117,12 @@
     <p id="message"></p>
   </div>
 
+  <audio id="slot-sound" src="https://raw.githubusercontent.com/yunrang2/upload/refs/heads/master/slot-machine.mp3"></audio>
+  <audio id="stop-sound" src="https://raw.githubusercontent.com/yunrang2/upload/refs/heads/master/Coin%201.mp3"></audio>
+  <audio id="button-sound" src="https://raw.githubusercontent.com/yunrang2/upload/refs/heads/master/Correct%206.mp3"></audio>
+  <audio id="win-sound" src="https://raw.githubusercontent.com/yunrang2/upload/refs/heads/master/Storytelling%20Cartoon%20MusicComedy%2015.mp3"></audio>
+  <audio id="lose-sound" src="https://raw.githubusercontent.com/yunrang2/upload/refs/heads/master/%EB%8C%80%EB%A8%B8%EB%A6%AC%20%EA%B9%8E%EC%95%84%EB%9D%BC%201.mp3"></audio>
+
   <script>
     const users = JSON.parse(localStorage.getItem("users")) || {};
     const usernameSelect = document.getElementById("username");
@@ -124,6 +130,89 @@
     const spinButton = document.getElementById("spin-button");
     const betSelect = document.getElementById("bet");
     const messageDisplay = document.getElementById("message");
+
+    const slotSound = document.getElementById("slot-sound");
+    const stopSound = document.getElementById("stop-sound");
+    const buttonSound = document.getElementById("button-sound");
+    const winSound = document.getElementById("win-sound");
+    const loseSound = document.getElementById("lose-sound");
+
+    spinButton.addEventListener("click", () => {
+      buttonSound.play();
+      const user = usernameSelect.value;
+      const bet = parseInt(betSelect.value, 10);
+
+      if (users[user].balance < bet) {
+        messageDisplay.textContent = "잔액이 부족합니다!";
+        return;
+      }
+
+      users[user].balance -= bet;
+      saveUsers();
+      updateBalance();
+
+      const slots = ["🍒", "🔔", "⭐", "7️⃣"];
+      const results = [];
+      const slotElements = document.querySelectorAll(".slot span");
+
+      let intervalIds = [];
+
+      slotSound.currentTime = 0;
+      slotSound.play();
+
+      slotElements.forEach(slot => {
+        const intervalId = setInterval(() => {
+          const randomIndex = Math.floor(Math.random() * slots.length);
+          slot.textContent = slots[randomIndex];
+        }, 100);
+        intervalIds.push(intervalId);
+      });
+
+      let delay = 0;
+      slotElements.forEach((slot, index) => {
+        setTimeout(() => {
+          clearInterval(intervalIds[index]);
+          const finalIndex = Math.floor(Math.random() * slots.length);
+          const symbol = slots[finalIndex];
+          slot.textContent = symbol;
+          results[index] = symbol;
+          stopSound.currentTime = 0;
+          stopSound.play();
+
+          if (index === slotElements.length - 1) {
+            slotSound.pause();
+            let winnings = 0;
+            if (new Set(results).size === 1) {
+              switch (results[0]) {
+                case "🍒":
+                  winnings = 1000;
+                  break;
+                case "🔔":
+                  winnings = 5000;
+                  break;
+                case "⭐":
+                  winnings = bet * 2;
+                  break;
+                case "7️⃣":
+                  winnings = bet * 3;
+                  break;
+              }
+              users[user].balance += winnings;
+              winSound.currentTime = 0;
+              winSound.play();
+              messageDisplay.textContent = `🎉 축하합니다! ₩${winnings} 획득!`;
+            } else {
+              loseSound.currentTime = 0;
+              loseSound.play();
+              messageDisplay.textContent = "다시 시도하세요!";
+            }
+            saveUsers();
+            updateBalance();
+          }
+        }, delay);
+        delay += 1000;
+      });
+    });
 
     function saveUsers() {
       localStorage.setItem("users", JSON.stringify(users));
@@ -153,72 +242,6 @@
     }
 
     usernameSelect.addEventListener("change", updateBalance);
-
-    spinButton.addEventListener("click", () => {
-      const user = usernameSelect.value;
-      const bet = parseInt(betSelect.value, 10);
-
-      if (users[user].balance < bet) {
-        messageDisplay.textContent = "잔액이 부족합니다!";
-        return;
-      }
-
-      users[user].balance -= bet;
-      saveUsers();
-      updateBalance();
-
-      const slots = ["🍒", "🔔", "⭐", "7️⃣"];
-      const results = [];
-      const slotElements = document.querySelectorAll(".slot span");
-
-      let intervalIds = [];
-
-      slotElements.forEach(slot => {
-        const intervalId = setInterval(() => {
-          const randomIndex = Math.floor(Math.random() * slots.length);
-          slot.textContent = slots[randomIndex];
-        }, 100);
-        intervalIds.push(intervalId);
-      });
-
-      let delay = 0;
-      slotElements.forEach((slot, index) => {
-        setTimeout(() => {
-          clearInterval(intervalIds[index]);
-          const finalIndex = Math.floor(Math.random() * slots.length);
-          const symbol = slots[finalIndex];
-          slot.textContent = symbol;
-          results[index] = symbol;
-
-          if (index === slotElements.length - 1) {
-            let winnings = 0;
-            if (new Set(results).size === 1) {
-              switch (results[0]) {
-                case "🍒":
-                  winnings = 1000;
-                  break;
-                case "🔔":
-                  winnings = 5000;
-                  break;
-                case "⭐":
-                  winnings = bet * 2;
-                  break;
-                case "7️⃣":
-                  winnings = bet * 3;
-                  break;
-              }
-              users[user].balance += winnings;
-              messageDisplay.textContent = `🎉 축하합니다! ₩${winnings} 획득!`;
-            } else {
-              messageDisplay.textContent = "다시 시도하세요!";
-            }
-            saveUsers();
-            updateBalance();
-          }
-        }, delay);
-        delay += 1000;
-      });
-    });
 
     refreshUserList();
   </script>
