@@ -88,7 +88,7 @@
     <a href="user-management.html"><button>사용자 관리</button></a>
   </div>
   <div class="container">
-    <h1>🎰 슬롯머신 게임</h1>
+    <h1>🎰 죽돌이의 슬롯머신</h1>
     <div class="user-section">
       <label for="username">사용자 선택:</label>
       <select id="username">
@@ -174,7 +174,7 @@
       saveUsers();
       updateBalance();
 
-      const slots = ["🍒", "🔔", "⭐", "7️⃣"];
+      const slots = ["🍒", "🔔", "⭐", "7️⃣", "🍋", "🍉"];
       const results = [];
       const slotElements = document.querySelectorAll(".slot span");
 
@@ -186,7 +186,7 @@
         const intervalId = setInterval(() => {
           const randomIndex = Math.floor(Math.random() * slots.length);
           slot.textContent = slots[randomIndex];
-        }, 100);
+        }, 50); // Faster spinning
         intervalIds.push(intervalId);
       });
 
@@ -206,7 +206,7 @@
             checkWin(results);
           }
         }, delay);
-        delay += 1000;
+        delay += 300; // Shorter delays between stops
       });
     });
 
@@ -225,19 +225,22 @@
       let winnings = 0;
       lines.forEach(line => {
         if (results[line[0]] === results[line[1]] && results[line[1]] === results[line[2]]) {
-          switch (results[line[0]]) {
-            case "🍒":
-              winnings += 1000;
-              break;
-            case "🔔":
-              winnings += 5000;
-              break;
-            case "⭐":
-              winnings += parseInt(betSelect.value, 10) * 10;
-              break;
-            case "7️⃣":
-              winnings += parseInt(betSelect.value, 10) * 50;
-              break;
+          const randomChance = Math.random();
+          if (randomChance > 0.8) { // Lower probability for a win
+            switch (results[line[0]]) {
+              case "🍒":
+                winnings += 1000;
+                break;
+              case "🔔":
+                winnings += 5000;
+                break;
+              case "⭐":
+                winnings += parseInt(betSelect.value, 10) * 10;
+                break;
+              case "7️⃣":
+                winnings += parseInt(betSelect.value, 10) * 50;
+                break;
+            }
           }
         }
       });
