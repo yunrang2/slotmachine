@@ -81,9 +81,49 @@
       top: 20px;
       right: 20px;
     }
+
+    .rules-info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 1.2rem;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .rules-info:hover .rules-details {
+      display: block;
+    }
+
+    .rules-details {
+      display: none;
+      position: absolute;
+      top: 30px;
+      left: 20px;
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+      border-radius: 5px;
+      width: 250px;
+      text-align: left;
+      font-size: 0.9rem;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
+  <div class="rules-info">ⓘ
+    <div class="rules-details">
+      <strong>게임 룰:</strong>
+      <ul>
+        <li>🍒 3개: ₩1,000</li>
+        <li>🔔 3개: ₩5,000</li>
+        <li>⭐ 3개: 베팅 금액의 2배</li>
+        <li>7️⃣ 3개: 베팅 금액의 3배</li>
+        <li>대각선, 가로, 세로 라인으로 당첨 가능합니다.</li>
+      </ul>
+    </div>
+  </div>
   <div class="manage-users">
     <a href="user-management.html"><button>사용자 관리</button></a>
   </div>
@@ -186,7 +226,7 @@
         const intervalId = setInterval(() => {
           const randomIndex = Math.floor(Math.random() * slots.length);
           slot.textContent = slots[randomIndex];
-        }, 50); // Faster spinning
+        }, 50);
         intervalIds.push(intervalId);
       });
 
@@ -206,7 +246,7 @@
             checkWin(results);
           }
         }, delay);
-        delay += 300; // Shorter delays between stops
+        delay += 300;
       });
     });
 
@@ -225,22 +265,19 @@
       let winnings = 0;
       lines.forEach(line => {
         if (results[line[0]] === results[line[1]] && results[line[1]] === results[line[2]]) {
-          const randomChance = Math.random();
-          if (randomChance > 0.8) { // Lower probability for a win
-            switch (results[line[0]]) {
-              case "🍒":
-                winnings += 1000;
-                break;
-              case "🔔":
-                winnings += 5000;
-                break;
-              case "⭐":
-                winnings += parseInt(betSelect.value, 10) * 10;
-                break;
-              case "7️⃣":
-                winnings += parseInt(betSelect.value, 10) * 50;
-                break;
-            }
+          switch (results[line[0]]) {
+            case "🍒":
+              winnings += 1000;
+              break;
+            case "🔔":
+              winnings += 5000;
+              break;
+            case "⭐":
+              winnings += parseInt(betSelect.value, 10) * 10;
+              break;
+            case "7️⃣":
+              winnings += parseInt(betSelect.value, 10) * 50;
+              break;
           }
         }
       });
