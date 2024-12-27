@@ -52,6 +52,12 @@
       display: block;
     }
 
+    .highlight {
+      background-color: #ffeb3b;
+      color: #000;
+      font-weight: bold;
+    }
+
     button {
       padding: 10px 20px;
       font-size: 1rem;
@@ -88,7 +94,7 @@
     <a href="user-management.html"><button>사용자 관리</button></a>
   </div>
   <div class="container">
-    <h1>🎰 죽돌이의 슬롯머신신</h1>
+    <h1>🎰 죽돌이의 슬롯머신 🎰</h1>
     <div class="user-section">
       <label for="username">사용자 선택:</label>
       <select id="username">
@@ -141,17 +147,21 @@
     ];
 
     const generateUniqueColumnSymbols = () => {
-      const columnSymbols = [];
-      for (let i = 0; i < 3; i++) {
-        const uniqueSymbols = new Set();
-        while (uniqueSymbols.size < 3) {
+      const columns = [];
+      for (let col = 0; col < 3; col++) {
+        const usedSymbols = new Set();
+        const column = [];
+        while (column.length < 3) {
           const randomIndex = Math.floor(Math.random() * symbols.length);
           const symbol = symbols[randomIndex].symbol;
-          uniqueSymbols.add(symbol);
+          if (!usedSymbols.has(symbol)) {
+            usedSymbols.add(symbol);
+            column.push(symbol);
+          }
         }
-        columnSymbols.push([...uniqueSymbols]);
+        columns.push(column);
       }
-      return columnSymbols;
+      return columns;
     };
 
     function saveUsers() {
@@ -250,11 +260,12 @@
       let isBombLine = false;
 
       lines.forEach(line => {
-        if (results[line[0]] === results[line[1]] && results[line[1]] === results[line[2]]) {
-          if (results[line[0]] === "💣") {
+        const [a, b, c] = line;
+        if (results[a] === results[b] && results[b] === results[c]) {
+          if (results[a] === "💣") {
             isBombLine = true;
           } else {
-            switch (results[line[0]]) {
+            switch (results[a]) {
               case "🍒":
                 winnings += 1000;
                 break;
@@ -262,12 +273,16 @@
                 winnings += 5000;
                 break;
               case "⭐":
-                winnings += 10000;
+                winnings += parseInt(betSelect.value, 10) * 10;
                 break;
               case "7️⃣":
-                winnings += 30000;
+                winnings += parseInt(betSelect.value, 10) * 30;
                 break;
             }
+            // Highlight the winning line
+            line.forEach(index => {
+              document.querySelectorAll(".slot")[index].classList.add("highlight");
+            });
           }
         }
       });
@@ -283,6 +298,11 @@
 
       saveUsers();
       updateBalance();
+
+      // Remove highlights after a delay
+      setTimeout(() => {
+        document.querySelectorAll(".slot").forEach(slot => slot.classList.remove("highlight"));
+      }, 2000);
     }
 
     refreshUserList();
