@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>사용자 관리</title>
+  <style>
+    @font-face {
+      font-family: 'DNFBitBit';
+      src: url('https://raw.githubusercontent.com/yunrang2/upload/refs/heads/master/DNFBitBitv2.ttf') format('truetype');
+    }
+
+    body {
+      font-family: 'DNFBitBit', Arial, sans-serif;
+      text-align: center;
+      background-color: #1e1e2f;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      border-radius: 10px;
+      background: linear-gradient(to bottom, #4e4376, #2b5876);
+      box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #ff6f61;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+      font-family: 'DNFBitBit', Arial, sans-serif;
+    }
+
+    button:hover {
+      background-color: #ff3b2f;
+    }
+
+    input, select {
+      margin: 10px 0;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      font-family: 'DNFBitBit', Arial, sans-serif;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+    }
+
+    li {
+      margin: 10px 0;
+      background-color: #333;
+      padding: 10px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'DNFBitBit', Arial, sans-serif;
+    }
+
+    .user-actions {
+      display: flex;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>사용자 관리</h1>
+    <div>
+      <input type="text" id="new-user-name" placeholder="새 사용자 이름">
+      <select id="new-user-balance">
+        <option value="10000">₩10,000</option>
+        <option value="30000">₩30,000</option>
+        <option value="50000">₩50,000</option>
+      </select>
+      <button id="add-user">추가</button>
+    </div>
+    <ul id="user-list"></ul>
+    <a href="index.html"><button>홈으로 돌아가기</button></a>
+  </div>
+
+  <script>
+    const users = JSON.parse(localStorage.getItem("users")) || {};
+    const userList = document.getElementById("user-list");
+    const newUserNameInput = document.getElementById("new-user-name");
+    const newUserBalanceSelect = document.getElementById("new-user-balance");
+    const addUserButton = document.getElementById("add-user");
+
+    function saveUsers() {
+      localStorage.setItem("users", JSON.stringify(users));
+      refreshUserList();
+    }
+
+    function refreshUserList() {
+      userList.innerHTML = '';
+
+      for (const user in users) {
+        const listItem = document.createElement("li");
+        listItem.textContent = `${user}: ₩${users[user].balance}`;
+
+        const actions = document.createElement("div");
+        actions.className = "user-actions";
+
+        const modifyInput = document.createElement("input");
+        modifyInput.type = "number";
+        modifyInput.placeholder = "금액 입력";
+        modifyInput.style.width = "80px";
+
+        const addButton = document.createElement("button");
+        addButton.textContent = "적립";
+        addButton.addEventListener("click", () => {
+          const amount = parseInt(modifyInput.value, 10);
+          if (!isNaN(amount)) {
+            users[user].balance += amount;
+            saveUsers();
+          }
+        });
+
+        const subtractButton = document.createElement("button");
+        subtractButton.textContent = "차감";
+        subtractButton.addEventListener("click", () => {
+          const amount = parseInt(modifyInput.value, 10);
+          if (!isNaN(amount)) {
+            users[user].balance -= amount;
+            saveUsers();
+          }
+        });
+
+        actions.appendChild(modifyInput);
+        actions.appendChild(addButton);
+        actions.appendChild(subtractButton);
+
+        listItem.appendChild(actions);
+        userList.appendChild(listItem);
+      }
+    }
+
+    addUserButton.addEventListener("click", () => {
+      const userName = newUserNameInput.value.trim();
+      const userBalance = parseInt(newUserBalanceSelect.value, 10);
+
+      if (userName && !users[userName]) {
+        users[userName] = { balance: userBalance };
+        newUserNameInput.value = '';
+        saveUsers();
+      }
+    });
+
+    refreshUserList();
+  </script>
+</body>
+</html>

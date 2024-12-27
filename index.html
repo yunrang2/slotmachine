@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>슬롯머신</title>
+  <style>
+    @font-face {
+      font-family: 'DNFBitBit';
+      src: url('https://raw.githubusercontent.com/yunrang2/upload/refs/heads/master/DNFBitBitv2.ttf') format('truetype');
+    }
+
+    body {
+      font-family: 'DNFBitBit', Arial, sans-serif;
+      text-align: center;
+      background-color: #1e1e2f;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      border-radius: 10px;
+      background: linear-gradient(to bottom, #4e4376, #2b5876);
+      box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .slot-machine {
+      margin-top: 20px;
+    }
+
+    .slots {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .slot {
+      font-size: 3rem;
+      margin: 0 10px;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #fff;
+      color: #000;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .slot span {
+      display: block;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #ff6f61;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: 'DNFBitBit', Arial, sans-serif;
+    }
+
+    button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
+    }
+
+    button:hover:enabled {
+      background-color: #ff3b2f;
+    }
+
+    .bet-section {
+      margin-top: 10px;
+    }
+
+    .manage-users {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="manage-users">
+    <a href="user-management.html"><button>사용자 관리</button></a>
+  </div>
+  <div class="container">
+    <h1>🎰 죽돌이의 슬롯머신</h1>
+    <div class="user-section">
+      <label for="username">사용자 선택:</label>
+      <select id="username">
+        <option value="" selected>사용자를 선택하세요</option>
+      </select>
+      <p>잔액: ₩<span id="balance">0</span></p>
+    </div>
+    <div class="slot-machine">
+      <div class="slots">
+        <div class="slot"><span>🍒</span></div>
+        <div class="slot"><span>🍒</span></div>
+        <div class="slot"><span>🍒</span></div>
+      </div>
+      <button id="spin-button" disabled>돌리기</button>
+      <div class="bet-section">
+        <label for="bet">베팅 금액:</label>
+        <select id="bet" disabled>
+          <option value="1000">₩1,000</option>
+          <option value="5000">₩5,000</option>
+          <option value="10000">₩10,000</option>
+        </select>
+      </div>
+    </div>
+    <p id="message"></p>
+  </div>
+
+  <script>
+    const users = JSON.parse(localStorage.getItem("users")) || {};
+    const usernameSelect = document.getElementById("username");
+    const balanceDisplay = document.getElementById("balance");
+    const spinButton = document.getElementById("spin-button");
+    const betSelect = document.getElementById("bet");
+    const messageDisplay = document.getElementById("message");
+
+    function saveUsers() {
+      localStorage.setItem("users", JSON.stringify(users));
+      refreshUserList();
+    }
+
+    function refreshUserList() {
+      const selectedUser = usernameSelect.value;
+      usernameSelect.innerHTML = '<option value="" selected>사용자를 선택하세요</option>';
+
+      for (const user in users) {
+        const option = document.createElement("option");
+        option.value = user;
+        option.textContent = user;
+        if (user === selectedUser) {
+          option.selected = true;
+        }
+        usernameSelect.appendChild(option);
+      }
+    }
+
+    function updateBalance() {
+      const user = usernameSelect.value;
+      balanceDisplay.textContent = user ? users[user].balance : 0;
+      spinButton.disabled = !user;
+      betSelect.disabled = !user;
+    }
+
+    usernameSelect.addEventListener("change", updateBalance);
+
+    spinButton.addEventListener("click", () => {
+      const user = usernameSelect.value;
+      const bet = parseInt(betSelect.value, 10);
+
+      if (users[user].balance < bet) {
+        messageDisplay.textContent = "잔액이 부족합니다!";
+        return;
+      }
+
+      users[user].balance -= bet;
+      saveUsers();
+      updateBalance();
+
+      const slots = ["🍒", "🔔", "⭐", "7️⃣"];
+      const results = [];
+      const slotElements = document.querySelectorAll(".slot span");
+
+      let intervalIds = [];
+
+      slotElements.forEach(slot => {
+        const intervalId = setInterval(() => {
+          const randomIndex = Math.floor(Math.random() * slots.length);
+          slot.textContent = slots[randomIndex];
+        }, 100);
+        intervalIds.push(intervalId);
+      });
+
+      let delay = 0;
+      slotElements.forEach((slot, index) => {
+        setTimeout(() => {
+          clearInterval(intervalIds[index]);
+          const finalIndex = Math.floor(Math.random() * slots.length);
+          const symbol = slots[finalIndex];
+          slot.textContent = symbol;
+          results[index] = symbol;
+
+          if (index === slotElements.length - 1) {
+            let winnings = 0;
+            if (new Set(results).size === 1) {
+              switch (results[0]) {
+                case "🍒":
+                  winnings = 1000;
+                  break;
+                case "🔔":
+                  winnings = 5000;
+                  break;
+                case "⭐":
+                  winnings = bet * 2;
+                  break;
+                case "7️⃣":
+                  winnings = bet * 3;
+                  break;
+              }
+              users[user].balance += winnings;
+              messageDisplay.textContent = `🎉 축하합니다! ₩${winnings} 획득!`;
+            } else {
+              messageDisplay.textContent = "다시 시도하세요!";
+            }
+            saveUsers();
+            updateBalance();
+          }
+        }, delay);
+        delay += 1000;
+      });
+    });
+
+    refreshUserList();
+  </script>
+</body>
+</html>
