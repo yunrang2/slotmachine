@@ -81,49 +81,9 @@
       top: 20px;
       right: 20px;
     }
-
-    .rules-info {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      font-size: 1.2rem;
-      color: #fff;
-      cursor: pointer;
-    }
-
-    .rules-info:hover .rules-details {
-      display: block;
-    }
-
-    .rules-details {
-      display: none;
-      position: absolute;
-      top: 30px;
-      left: 20px;
-      background-color: #333;
-      color: #fff;
-      padding: 10px;
-      border-radius: 5px;
-      width: 250px;
-      text-align: left;
-      font-size: 0.9rem;
-      z-index: 10;
-    }
   </style>
 </head>
 <body>
-  <div class="rules-info">ⓘ
-    <div class="rules-details">
-      <strong>게임 룰:</strong>
-      <ul>
-        <li>🍒 3개: ₩1,000</li>
-        <li>🔔 3개: ₩5,000</li>
-        <li>⭐ 3개: 베팅 금액의 2배</li>
-        <li>7️⃣ 3개: 베팅 금액의 3배</li>
-        <li>대각선, 가로, 세로 라인으로 당첨 가능합니다.</li>
-      </ul>
-    </div>
-  </div>
   <div class="manage-users">
     <a href="user-management.html"><button>사용자 관리</button></a>
   </div>
@@ -138,14 +98,14 @@
     </div>
     <div class="slot-machine">
       <div class="slot"><span>🍒</span></div>
+      <div class="slot"><span>🔔</span></div>
+      <div class="slot"><span>⭐</span></div>
+      <div class="slot"><span>7️⃣</span></div>
+      <div class="slot"><span>🍋</span></div>
+      <div class="slot"><span>🍉</span></div>
+      <div class="slot"><span>🍉</span></div>
+      <div class="slot"><span>🍋</span></div>
       <div class="slot"><span>🍒</span></div>
-      <div class="slot"><span>🍒</span></div>
-      <div class="slot"><span>🔔</span></div>
-      <div class="slot"><span>🔔</span></div>
-      <div class="slot"><span>🔔</span></div>
-      <div class="slot"><span>⭐</span></div>
-      <div class="slot"><span>⭐</span></div>
-      <div class="slot"><span>⭐</span></div>
     </div>
     <button id="spin-button" disabled>돌리기</button>
     <div class="bet-section">
@@ -171,6 +131,17 @@
     const messageDisplay = document.getElementById("message");
     const slotSound = document.getElementById("slot-sound");
     const stopSound = document.getElementById("stop-sound");
+
+    const symbols = [
+      { symbol: "🍒", weight: 15 },
+      { symbol: "🔔", weight: 10 },
+      { symbol: "⭐", weight: 7 },
+      { symbol: "7️⃣", weight: 3 },
+      { symbol: "🍋", weight: 25 },
+      { symbol: "🍉", weight: 40 },
+    ];
+
+    const weightedSymbols = symbols.flatMap(({ symbol, weight }) => Array(weight).fill(symbol));
 
     function saveUsers() {
       localStorage.setItem("users", JSON.stringify(users));
@@ -214,7 +185,6 @@
       saveUsers();
       updateBalance();
 
-      const slots = ["🍒", "🔔", "⭐", "7️⃣", "🍋", "🍉"];
       const results = [];
       const slotElements = document.querySelectorAll(".slot span");
 
@@ -224,8 +194,8 @@
       let intervalIds = [];
       slotElements.forEach(slot => {
         const intervalId = setInterval(() => {
-          const randomIndex = Math.floor(Math.random() * slots.length);
-          slot.textContent = slots[randomIndex];
+          const randomIndex = Math.floor(Math.random() * weightedSymbols.length);
+          slot.textContent = weightedSymbols[randomIndex];
         }, 50);
         intervalIds.push(intervalId);
       });
@@ -234,8 +204,8 @@
       slotElements.forEach((slot, index) => {
         setTimeout(() => {
           clearInterval(intervalIds[index]);
-          const finalIndex = Math.floor(Math.random() * slots.length);
-          const symbol = slots[finalIndex];
+          const finalIndex = Math.floor(Math.random() * weightedSymbols.length);
+          const symbol = weightedSymbols[finalIndex];
           slot.textContent = symbol;
           results[index] = symbol;
           stopSound.currentTime = 0;
@@ -276,7 +246,7 @@
               winnings += parseInt(betSelect.value, 10) * 10;
               break;
             case "7️⃣":
-              winnings += parseInt(betSelect.value, 10) * 50;
+              winnings += parseInt(betSelect.value, 10) * 30;
               break;
           }
         }
